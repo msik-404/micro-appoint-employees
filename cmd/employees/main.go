@@ -21,7 +21,12 @@ func main() {
 
 	r := gin.Default()
 
+    // public
+	r.GET("/employees", employees.GetEmployeesEndPoint(db))
+    // private
+    r.GET("/employees/:id", employees.GetEmployeeEndPoint(db))
 	r.POST("/employees", employees.AddEmployeeEndPoint(db))
+	r.DELETE("/employees/:id", employees.DeleteEmployeeEndPoint(db))
 
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
