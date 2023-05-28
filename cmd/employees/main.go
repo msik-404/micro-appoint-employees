@@ -49,7 +49,6 @@ func main() {
 		panic(err)
 	}
 	db := mongoClient.Database("micro-appoint-employees")
-    test(db)
 	// _, err = database.CreateDBIndexes(db)
 	// if err != nil {
 	// 	panic(err)
