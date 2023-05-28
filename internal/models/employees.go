@@ -28,7 +28,7 @@ type TimeFrameString struct {
 }
 
 // Transforms string representation to numeric(number of minutes since 00:00).
-func stringDateToInt(stringDate string) (int, error) {
+func stringTimeToInt(stringDate string) (int, error) {
 	if len(stringDate) == 0 || len(stringDate) > 4 {
 		return -1, errors.New("Wrong string format")
 	}
@@ -50,11 +50,11 @@ func stringDateToInt(stringDate string) (int, error) {
 }
 
 func (timeFrameString *TimeFrameString) toTimeFrame() (TimeFrame, error) {
-	fromTime, err := stringDateToInt(timeFrameString.From)
+	fromTime, err := stringTimeToInt(timeFrameString.From)
 	if err != nil {
 		return TimeFrame{fromTime, -1}, err
 	}
-	toTime, err := stringDateToInt(timeFrameString.To)
+	toTime, err := stringTimeToInt(timeFrameString.To)
 	return TimeFrame{fromTime, toTime}, err
 }
 
@@ -68,58 +68,69 @@ type WorkTimesString struct {
 	Su []TimeFrameString `json:"su" bson:"su,omitempty"`
 }
 
-func (workTimesString *WorkTimesString) toWorkTimes() (WorkTimes, error) {
+func (workTimesString *WorkTimesString) toWorkTimes() (*WorkTimes, error) {
 	workTimes := WorkTimes{}
+	isEmpty := true
 	for _, timeFrameString := range workTimesString.Mo {
+		isEmpty = false
 		timeFrame, err := timeFrameString.toTimeFrame()
 		if err != nil {
-			return workTimes, err
+			return nil, err
 		}
 		workTimes.Mo = append(workTimes.Mo, timeFrame)
 	}
 	for _, timeFrameString := range workTimesString.Tu {
+		isEmpty = false
 		timeFrame, err := timeFrameString.toTimeFrame()
 		if err != nil {
-			return workTimes, err
+			return nil, err
 		}
 		workTimes.Tu = append(workTimes.Tu, timeFrame)
 	}
 	for _, timeFrameString := range workTimesString.We {
+		isEmpty = false
 		timeFrame, err := timeFrameString.toTimeFrame()
 		if err != nil {
-			return workTimes, err
+			return nil, err
 		}
 		workTimes.We = append(workTimes.We, timeFrame)
 	}
 	for _, timeFrameString := range workTimesString.Th {
+		isEmpty = false
 		timeFrame, err := timeFrameString.toTimeFrame()
 		if err != nil {
-			return workTimes, err
+			return nil, err
 		}
 		workTimes.Th = append(workTimes.Th, timeFrame)
 	}
 	for _, timeFrameString := range workTimesString.Fr {
+		isEmpty = false
 		timeFrame, err := timeFrameString.toTimeFrame()
 		if err != nil {
-			return workTimes, err
+			return nil, err
 		}
 		workTimes.Fr = append(workTimes.Fr, timeFrame)
 	}
 	for _, timeFrameString := range workTimesString.Sa {
+		isEmpty = false
 		timeFrame, err := timeFrameString.toTimeFrame()
 		if err != nil {
-			return workTimes, err
+			return nil, err
 		}
 		workTimes.Sa = append(workTimes.Sa, timeFrame)
 	}
 	for _, timeFrameString := range workTimesString.Su {
+		isEmpty = false
 		timeFrame, err := timeFrameString.toTimeFrame()
 		if err != nil {
-			return workTimes, err
+			return nil, err
 		}
 		workTimes.Su = append(workTimes.Su, timeFrame)
 	}
-	return workTimes, nil
+    if isEmpty {
+        return nil, nil
+    }
+	return &workTimes, nil
 }
 
 // Data representation which will be used for comunication with the front.
@@ -148,11 +159,40 @@ func (employeeCombRepr *EmployeeCombRepr) InsertCombRepr(db *mongo.Database) ([]
 		return nil, err
 	}
 	employee_info := EmployeeInfo{
-        EmployeeID: result.InsertedID.(primitive.ObjectID),
+		EmployeeID: result.InsertedID.(primitive.ObjectID),
 		WorkTimes:  workTimes,
 		Competence: employeeCombRepr.Competence,
 	}
 	result, err = employee_info.InsertOne(db)
+	if err != nil {
+		return nil, err
+	}
+	results = append(results, result)
+	return results, nil
+}
+
+func (employeeCombRepr *EmployeeCombRepr) UpdateCombRepr(db *mongo.Database) ([]*mongo.UpdateResult, error) {
+	employee := Employee{
+		ID:      employeeCombRepr.ID,
+		Name:    employeeCombRepr.Name,
+		Surname: employeeCombRepr.Surname,
+	}
+	var results []*mongo.UpdateResult
+	result, err := employee.UpdateOne(db)
+	if err != nil {
+		return nil, err
+	}
+	results = append(results, result)
+	workTimes, err := employeeCombRepr.WorkTimesString.toWorkTimes()
+	if err != nil {
+		return nil, err
+	}
+	employee_info := EmployeeInfo{
+		EmployeeID: employeeCombRepr.ID,
+		WorkTimes:  workTimes,
+		Competence: employeeCombRepr.Competence,
+	}
+	result, err = employee_info.UpdateOne(db)
 	if err != nil {
 		return nil, err
 	}

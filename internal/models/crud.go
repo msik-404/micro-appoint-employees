@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -36,10 +37,10 @@ func GenericUpdateOne[T MongoModel](coll *mongo.Collection, filter bson.D, item 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	replacement, err := toBsonRemoveEmpty(item)
+    if err != nil {
+        return nil, err
+    }
 	delete(*replacement, "_id")
-	if err != nil {
-		return nil, err
-	}
 	// empty replacement is skipped
 	if len(*replacement) == 0 {
 		return nil, nil

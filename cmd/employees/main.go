@@ -26,6 +26,7 @@ func main() {
     // private
     r.GET("/employees/:id", employees.GetEmployeeEndPoint(db))
 	r.POST("/employees", employees.AddEmployeeEndPoint(db))
+	r.PUT("/employees/:id", employees.UpdateEmployeeEndPoint(db))
 	r.DELETE("/employees/:id", employees.DeleteEmployeeEndPoint(db))
 
 	r.Run() // listen and serve on 0.0.0.0:8080

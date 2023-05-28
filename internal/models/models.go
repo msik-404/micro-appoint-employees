@@ -33,10 +33,10 @@ type WorkTimes struct {
 	Su []TimeFrame `json:"su" bson:"su,omitempty"`
 }
 
-// Employees not only have personal work times but also competence: 
+// Employees not only have personal work times but also competence:
 // set of services which they can perform.
 type EmployeeInfo struct {
 	EmployeeID primitive.ObjectID   `json:"_id" bson:"_id,omitempty"`
-	WorkTimes  WorkTimes            `json:"work_times" bson:"work_times,omitempty"`
+	WorkTimes  *WorkTimes            `json:"work_times" bson:"work_times,omitempty"`
 	Competence []primitive.ObjectID `json:"competence" bson:"competence,omitempty"`
 }
