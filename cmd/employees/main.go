@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/msik-404/micro-appoint-employees/internal/database"
@@ -15,11 +16,16 @@ import (
 	"github.com/msik-404/micro-appoint-employees/internal/scheduling"
 )
 
-func test(db mongo.Database) {
-	date := scheduling.AppointDate{
-		WeekDay: "mo",
+func test(db *mongo.Database) {
+	value, err := primitive.ObjectIDFromHex("646e64f55e41c9bf2c95fbfa")
+	if err != nil {
+		panic(err)
+	}
+	date := scheduling.Appointment{
+		ServiceID: value,
+		WeekDay:   "mo",
 		TimeFrame: models.TimeFrame{
-			From: 400,
+			From: 100,
 			To:   720,
 		},
 	}
@@ -43,6 +49,7 @@ func main() {
 		panic(err)
 	}
 	db := mongoClient.Database("micro-appoint-employees")
+    test(db)
 	// _, err = database.CreateDBIndexes(db)
 	// if err != nil {
 	// 	panic(err)
