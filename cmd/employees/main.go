@@ -1,11 +1,41 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"time"
+
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/msik-404/micro-appoint-employees/internal/database"
 	"github.com/msik-404/micro-appoint-employees/internal/middleware/employees"
+	"github.com/msik-404/micro-appoint-employees/internal/models"
+	"github.com/msik-404/micro-appoint-employees/internal/scheduling"
 )
+
+func test(db mongo.Database) {
+	date := scheduling.AppointDate{
+		WeekDay: "mo",
+		TimeFrame: models.TimeFrame{
+			From: 400,
+			To:   720,
+		},
+	}
+	cursor, err := scheduling.GetAvailableEmployees(*db.Collection("employee_infos"), date)
+	if err != nil {
+		panic(err)
+	}
+	var results []bson.D
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := cursor.All(ctx, &results); err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%+v\n", results)
+}
 
 func main() {
 	mongoClient, err := database.ConnectDB()
@@ -21,10 +51,10 @@ func main() {
 
 	r := gin.Default()
 
-    // public
+	// public
 	r.GET("/employees", employees.GetEmployeesEndPoint(db))
-    // private
-    r.GET("/employees/:id", employees.GetEmployeeEndPoint(db))
+	// private
+	r.GET("/employees/:id", employees.GetEmployeeEndPoint(db))
 	r.POST("/employees", employees.AddEmployeeEndPoint(db))
 	r.PUT("/employees/:id", employees.UpdateEmployeeEndPoint(db))
 	r.DELETE("/employees/:id", employees.DeleteEmployeeEndPoint(db))
