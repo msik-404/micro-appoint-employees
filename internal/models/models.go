@@ -50,7 +50,7 @@ func (employee *Employee) InsertOne(
 type EmployeeUpdate struct {
 	Name       string               `json:"name" bson:"name,omitempty"`
 	Surname    string               `json:"surname" bson:"surname,omitempty"`
-	WorkTimes  *WorkTimes            `json:"work_times" bson:"work_times,omitempty"`
+	WorkTimes  *WorkTimes           `json:"work_times" bson:"work_times,omitempty"`
 	Competence []primitive.ObjectID `json:"competence" bson:"competence,omitempty"`
 }
 

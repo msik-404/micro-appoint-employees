@@ -53,7 +53,6 @@ func main() {
 	// if err != nil {
 	// 	panic(err)
 	// }
-	// testInsert(db)
 
 	r := gin.Default()
 
