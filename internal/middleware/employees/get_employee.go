@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/msik-404/micro-appoint-employees/internal/middleware"
@@ -18,9 +18,17 @@ func GetEmployeeEndPoint(db *mongo.Database) gin.HandlerFunc {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
-		coll := db.Collection("employee_infos")
-		filter := bson.D{{"_id", employeeId}}
-		employeeInfo, err := models.GenericFindOne[models.EmployeeInfo](coll, filter)
+		result := models.FindOneEmployee(db, employeeId)
+
+		type Employee struct {
+			Name       string               `json:"name" bson:"name,omitempty"`
+			Surname    string               `json:"surname" bson:"surname,omitempty"`
+			WorkTimes  models.WorkTimes     `json:"work_times" bson:"work_times,omitempty"`
+			Competence []primitive.ObjectID `json:"competence" bson:"competence,omitempty"`
+		}
+		var employee Employee
+
+		err = result.Decode(&employee)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				c.AbortWithError(http.StatusNotFound, err)
@@ -29,12 +37,7 @@ func GetEmployeeEndPoint(db *mongo.Database) gin.HandlerFunc {
 			}
 			return
 		}
-		result, err := employeeInfo.ToEmployeeInfoRepr()
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
-		c.JSON(http.StatusOK, result)
+		c.JSON(http.StatusOK, employee)
 	}
 	return gin.HandlerFunc(fn)
 }

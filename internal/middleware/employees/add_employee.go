@@ -11,12 +11,12 @@ import (
 
 func AddEmployeeEndPoint(db *mongo.Database) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
-		var newEmployee models.EmployeeCombRepr
+		var newEmployee models.Employee
 		if err := c.BindJSON(&newEmployee); err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
-		result, err := newEmployee.InsertCombRepr(db)
+		result, err := newEmployee.InsertOne(db)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return

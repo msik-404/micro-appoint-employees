@@ -16,13 +16,12 @@ func UpdateEmployeeEndPoint(db *mongo.Database) gin.HandlerFunc {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
-		var newEmployee models.EmployeeCombRepr
-		if err := c.BindJSON(&newEmployee); err != nil {
+		var employeeUpdate models.EmployeeUpdate
+		if err := c.BindJSON(&employeeUpdate); err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
-		newEmployee.ID = employeeID
-		results, err := newEmployee.UpdateCombRepr(db)
+		results, err := employeeUpdate.UpdateOne(db, employeeID)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
