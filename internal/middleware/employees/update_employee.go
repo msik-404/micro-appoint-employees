@@ -6,6 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/msik-404/micro-appoint-employees/internal/middleware"
 	"github.com/msik-404/micro-appoint-employees/internal/models"
+	"github.com/msik-404/micro-appoint-employees/internal/strtime"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -16,10 +18,31 @@ func UpdateEmployeeEndPoint(db *mongo.Database) gin.HandlerFunc {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
-		var employeeUpdate models.EmployeeUpdate
-		if err := c.BindJSON(&employeeUpdate); err != nil {
+		type EmployeeUpdateStr struct {
+			Name       string                `json:"name"`
+			Surname    string                `json:"surname"`
+			WorkTimes  *strtime.WorkTimesStr `json:"work_times"`
+			Competence []primitive.ObjectID  `json:"competence"`
+		}
+		var employeeUpdateStr EmployeeUpdateStr
+		if err := c.BindJSON(&employeeUpdateStr); err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
+		}
+		var workTimesUpdate *models.WorkTimes = nil
+		if employeeUpdateStr.WorkTimes != nil {
+            workTimes, err := strtime.ToWorkTimes(employeeUpdateStr.WorkTimes)
+			if err != nil {
+				c.AbortWithError(http.StatusBadRequest, err)
+				return
+			}
+            workTimesUpdate = &workTimes
+		}
+		employeeUpdate := models.EmployeeUpdate{
+			Name:       employeeUpdateStr.Name,
+			Surname:    employeeUpdateStr.Surname,
+			WorkTimes:  workTimesUpdate,
+			Competence: employeeUpdateStr.Competence,
 		}
 		results, err := employeeUpdate.UpdateOne(db, employeeID)
 		if err != nil {

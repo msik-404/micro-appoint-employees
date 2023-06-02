@@ -9,6 +9,7 @@ import (
 
 	"github.com/msik-404/micro-appoint-employees/internal/middleware"
 	"github.com/msik-404/micro-appoint-employees/internal/models"
+	"github.com/msik-404/micro-appoint-employees/internal/strtime"
 )
 
 func GetEmployeeEndPoint(db *mongo.Database) gin.HandlerFunc {
@@ -21,10 +22,10 @@ func GetEmployeeEndPoint(db *mongo.Database) gin.HandlerFunc {
 		result := models.FindOneEmployee(db, employeeId)
 
 		type Employee struct {
-			Name       string               `json:"name" bson:"name,omitempty"`
-			Surname    string               `json:"surname" bson:"surname,omitempty"`
-			WorkTimes  models.WorkTimes     `json:"work_times" bson:"work_times,omitempty"`
-			Competence []primitive.ObjectID `json:"competence" bson:"competence,omitempty"`
+			Name       string               `bson:"name,omitempty"`
+			Surname    string               `bson:"surname,omitempty"`
+			WorkTimes  models.WorkTimes     `bson:"work_times,omitempty"`
+			Competence []primitive.ObjectID `bson:"competence,omitempty"`
 		}
 		var employee Employee
 
@@ -37,7 +38,25 @@ func GetEmployeeEndPoint(db *mongo.Database) gin.HandlerFunc {
 			}
 			return
 		}
-		c.JSON(http.StatusOK, employee)
+
+		type EmployeeStr struct {
+			Name       string               `json:"name"`
+			Surname    string               `json:"surname"`
+			WorkTimes  strtime.WorkTimesStr `json:"work_times"`
+			Competence []primitive.ObjectID `json:"competence"`
+		}
+        workTimeStr, err := strtime.ToWorkTimesStr(&employee.WorkTimes)
+        if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+            return
+        }
+        employeeStr := EmployeeStr {
+            employee.Name,
+            employee.Surname,
+            workTimeStr,
+            employee.Competence,
+        }
+		c.JSON(http.StatusOK, employeeStr)
 	}
 	return gin.HandlerFunc(fn)
 }

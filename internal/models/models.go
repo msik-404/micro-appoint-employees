@@ -12,29 +12,29 @@ import (
 
 // Stores work time intervals. Time is stored as number of minutes since 00:00.
 type TimeFrame struct {
-	From int `json:"from" bson:"from,omitempty"`
-	To   int `json:"to" bson:"to,omitempty"`
+	From int `bson:"from,omitempty"`
+	To   int `bson:"to,omitempty"`
 }
 
 // At each day there may be many work time intervals.
 type WorkTimes struct {
-	Mo []TimeFrame `json:"mo" bson:"mo,omitempty"`
-	Tu []TimeFrame `json:"tu" bson:"tu,omitempty"`
-	We []TimeFrame `json:"we" bson:"we,omitempty"`
-	Th []TimeFrame `json:"th" bson:"th,omitempty"`
-	Fr []TimeFrame `json:"fr" bson:"fr,omitempty"`
-	Sa []TimeFrame `json:"sa" bson:"sa,omitempty"`
-	Su []TimeFrame `json:"su" bson:"su,omitempty"`
+	Mo []TimeFrame `bson:"mo,omitempty"`
+	Tu []TimeFrame `bson:"tu,omitempty"`
+	We []TimeFrame `bson:"we,omitempty"`
+	Th []TimeFrame `bson:"th,omitempty"`
+	Fr []TimeFrame `bson:"fr,omitempty"`
+	Sa []TimeFrame `bson:"sa,omitempty"`
+	Su []TimeFrame `bson:"su,omitempty"`
 }
 
 // Employees not only have personal work times but also competence:
 // set of services which they can perform.
 type Employee struct {
-	ID         primitive.ObjectID   `json:"_id" bson:"_id,omitempty"`
-	Name       string               `json:"name" bson:"name,omitempty"`
-	Surname    string               `json:"surname" bson:"surname,omitempty"`
-	WorkTimes  WorkTimes            `json:"work_times" bson:"work_times,omitempty"`
-	Competence []primitive.ObjectID `json:"competence" bson:"competence,omitempty"`
+	ID         primitive.ObjectID   `bson:"_id,omitempty"`
+	Name       string               `bson:"name,omitempty"`
+	Surname    string               `bson:"surname,omitempty"`
+	WorkTimes  WorkTimes            `bson:"work_times,omitempty"`
+	Competence []primitive.ObjectID `bson:"competence,omitempty"`
 }
 
 func (employee *Employee) InsertOne(
@@ -48,10 +48,10 @@ func (employee *Employee) InsertOne(
 }
 
 type EmployeeUpdate struct {
-	Name       string               `json:"name" bson:"name,omitempty"`
-	Surname    string               `json:"surname" bson:"surname,omitempty"`
-	WorkTimes  *WorkTimes           `json:"work_times" bson:"work_times,omitempty"`
-	Competence []primitive.ObjectID `json:"competence" bson:"competence,omitempty"`
+	Name       string               `bson:"name,omitempty"`
+	Surname    string               `bson:"surname,omitempty"`
+	WorkTimes  *WorkTimes           `bson:"work_times,omitempty"`
+	Competence []primitive.ObjectID `bson:"competence,omitempty"`
 }
 
 func (employeeUpdate *EmployeeUpdate) UpdateOne(

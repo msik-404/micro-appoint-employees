@@ -1,7 +1,6 @@
 package strtime
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -25,31 +24,39 @@ type WorkTimesStr struct {
 	Su []TimeFrameStr `json:"su"`
 }
 
+type TimeParseError struct {
+    message string
+}
+
+func (e TimeParseError) Error() string {
+    return e.message
+}
+
 // Transforms string representation to numeric(number of minutes since 00:00).
 func strTimeToInt(stringDate string) (int, error) {
 	if len(stringDate) == 0 || len(stringDate) > 4 {
-		return -1, errors.New("Wrong string format")
+		return -1, TimeParseError{"Wrong string format"}
 	}
 	hours, err := strconv.Atoi(stringDate[0:2])
 	if err != nil {
-		return hours, err
+		return hours, TimeParseError{err.Error()}
 	}
 	if hours < 0 || hours > 23 {
-		return hours, errors.New("Wrong string fromat")
+		return hours, TimeParseError{"Wrong string format"}
 	}
 	minutes, err := strconv.Atoi(stringDate[2:4])
 	if err != nil {
-		return hours, err
+		return hours, TimeParseError{err.Error()}
 	}
 	if minutes < 0 || minutes > 59 {
-		return hours, errors.New("Wrong string fromat")
+		return hours, TimeParseError{"Wrong string format"}
 	}
-	return hours*60 + minutes, err
+	return hours*60 + minutes, nil
 }
 
 func intToStrTime(i int) (string, error) {
 	if i < 0 || i > (23*60+59) {
-		return "", errors.New("Wrong int value to transform to string time")
+		return "", TimeParseError{"Wrong int value to transform to string time"}
 	}
 	hoursInt := i / 60
 	minutesInt := i % 60
@@ -68,10 +75,10 @@ func intToStrTime(i int) (string, error) {
 func toTimeFrameStr(timeFrame *models.TimeFrame) (TimeFrameStr, error) {
 	fromTimeStr, err := intToStrTime(timeFrame.From)
 	if err != nil {
-		return TimeFrameStr{fromTimeStr, ""}, err
+		return TimeFrameStr{fromTimeStr, ""}, err 
 	}
 	toTimeStr, err := intToStrTime(timeFrame.To)
-	return TimeFrameStr{fromTimeStr, toTimeStr}, err
+	return TimeFrameStr{fromTimeStr, toTimeStr}, err 
 }
 
 func toTimeFrame(timeFrameStr *TimeFrameStr) (models.TimeFrame, error) {
