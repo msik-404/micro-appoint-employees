@@ -14,8 +14,8 @@ import (
 func AddEmployeeEndPoint(db *mongo.Database) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		type EmployeeStr struct {
-			Name       string               `json:"name"`
-			Surname    string               `json:"surname"`
+            Name       string               `json:"name" binding:"max=30"`
+            Surname    string               `json:"surname" binding:"max=30"`
 			WorkTimes  strtime.WorkTimesStr `json:"work_times"`
 			Competence []primitive.ObjectID `json:"competence"`
 		}

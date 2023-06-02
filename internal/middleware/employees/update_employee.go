@@ -19,8 +19,8 @@ func UpdateEmployeeEndPoint(db *mongo.Database) gin.HandlerFunc {
 			return
 		}
 		type EmployeeUpdateStr struct {
-			Name       string                `json:"name"`
-			Surname    string                `json:"surname"`
+            Name       string                `json:"name" binding:"max=30"`
+            Surname    string                `json:"surname" binding:"max=30"`
 			WorkTimes  *strtime.WorkTimesStr `json:"work_times"`
 			Competence []primitive.ObjectID  `json:"competence"`
 		}
