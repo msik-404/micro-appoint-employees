@@ -76,7 +76,7 @@ func FindOneEmployee(
 
 	opts := options.FindOne()
 	opts.SetProjection(bson.D{
-		{"_id", 0},
+        {Key: "_id", Value: 0},
 	})
 
 	coll := db.Collection("employees")
@@ -96,8 +96,8 @@ func FindManyEmployees(
 	opts.SetSort(bson.M{"_id": -1})
 	opts.SetLimit(nPerPage)
 	opts.SetProjection(bson.D{
-		{"work_times", 0},
-		{"competence", 0},
+        {Key: "work_times", Value: 0},
+        {Key: "competence", Value: 0},
 	})
 
 	filter := bson.M{}
