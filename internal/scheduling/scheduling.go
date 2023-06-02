@@ -33,15 +33,15 @@ type Appointment struct {
 
 // Returns all employees that can perform specific service and are
 // available at certain time and week day.
-func GetAvailableEmployees(coll mongo.Collection, appointment Appointment) (*mongo.Cursor, error) {
+func GetAvailableEmployees(coll *mongo.Collection, appointment Appointment) (*mongo.Cursor, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-    // We want to just return matching ids.
+	// We want to just return matching ids.
 	options := options.Find().SetProjection(bson.M{"_id": 1})
 	competenceFilter := bson.M{
 		"competence": appointment.ServiceID,
 	}
-    day := fmt.Sprintf("work_times.%s", appointment.WeekDay)
+	day := fmt.Sprintf("work_times.%s", appointment.WeekDay)
 	dateFilter := bson.M{
 		day: bson.M{
 			"$elemMatch": bson.M{

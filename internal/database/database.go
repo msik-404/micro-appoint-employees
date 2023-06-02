@@ -26,17 +26,55 @@ func ConnectDB() (*mongo.Client, error) {
 }
 
 func CreateDBIndexes(db *mongo.Database) ([]string, error) {
-	coll := db.Collection("companies")
-	index := []mongo.IndexModel{
-		{
-			Keys:    bson.M{"name": 1},
-			Options: options.Index().SetUnique(true),
-		},
-		{
-			Keys: bson.M{"type": 1},
-		},
-	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	coll := db.Collection("employees")
+	index := []mongo.IndexModel{
+		{
+			Keys: bson.D{
+				{Key: "work_times.mo.from", Value: 1},
+				{Key: "work_times.mo.to", Value: -1},
+			},
+		},
+		{
+			Keys: bson.D{
+				{Key: "work_times.tu.from", Value: 1},
+				{Key: "work_times.tu.to", Value: -1},
+			},
+		},
+		{
+			Keys: bson.D{
+				{Key: "work_times.we.from", Value: 1},
+				{Key: "work_times.we.to", Value: -1},
+			},
+		},
+		{
+			Keys: bson.D{
+				{Key: "work_times.th.from", Value: 1},
+				{Key: "work_times.th.to", Value: -1},
+			},
+		},
+		{
+			Keys: bson.D{
+				{Key: "work_times.fr.from", Value: 1},
+				{Key: "work_times.fr.to", Value: -1},
+			},
+		},
+		{
+			Keys: bson.D{
+				{Key: "work_times.sa.from", Value: 1},
+				{Key: "work_times.sa.to", Value: -1},
+			},
+		},
+		{
+			Keys: bson.D{
+				{Key: "work_times.su.from", Value: 1},
+				{Key: "work_times.su.to", Value: -1},
+			},
+		},
+		{
+			Keys: bson.M{"competence": 1},
+		},
+	}
 	return coll.Indexes().CreateMany(ctx, index)
 }

@@ -16,43 +16,16 @@ import (
 	"github.com/msik-404/micro-appoint-employees/internal/scheduling"
 )
 
-func test(db *mongo.Database) {
-	value, err := primitive.ObjectIDFromHex("646e64f55e41c9bf2c95fbfa")
-	if err != nil {
-		panic(err)
-	}
-	date := scheduling.Appointment{
-		ServiceID: value,
-		WeekDay:   "mo",
-		TimeFrame: models.TimeFrame{
-			From: 100,
-			To:   720,
-		},
-	}
-	cursor, err := scheduling.GetAvailableEmployees(*db.Collection("employee_infos"), date)
-	if err != nil {
-		panic(err)
-	}
-	var results []bson.D
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := cursor.All(ctx, &results); err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("%+v\n", results)
-}
-
 func main() {
 	mongoClient, err := database.ConnectDB()
 	if err != nil {
 		panic(err)
 	}
 	db := mongoClient.Database("micro-appoint-employees")
-	// _, err = database.CreateDBIndexes(db)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	_, err = database.CreateDBIndexes(db)
+	if err != nil {
+		panic(err)
+	}
 
 	r := gin.Default()
 
@@ -65,4 +38,30 @@ func main() {
 	r.DELETE("/employees/:id", employees.DeleteEmployeeEndPoint(db))
 
 	r.Run() // listen and serve on 0.0.0.0:8080
+}
+
+func test(db *mongo.Database) {
+	value, err := primitive.ObjectIDFromHex("646e64f55e41c9bf2c95fbfa")
+	if err != nil {
+		panic(err)
+	}
+	date := scheduling.Appointment{
+		ServiceID: value,
+		WeekDay:   "mo",
+		TimeFrame: models.TimeFrame{
+			From: 510,
+			To:   600,
+		},
+	}
+	cursor, err := scheduling.GetAvailableEmployees(db.Collection("employees"), date)
+	if err != nil {
+		panic(err)
+	}
+	var results []bson.D
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := cursor.All(ctx, &results); err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", results)
 }
