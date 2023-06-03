@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/msik-404/micro-appoint-employees/internal/database"
-	"github.com/msik-404/micro-appoint-employees/internal/middleware/employees"
+	"github.com/msik-404/micro-appoint-employees/internal/controllers/employees"
 	"github.com/msik-404/micro-appoint-employees/internal/models"
 	"github.com/msik-404/micro-appoint-employees/internal/scheduling"
 )
