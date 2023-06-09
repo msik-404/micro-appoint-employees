@@ -11,6 +11,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+var DBName = os.Getenv("DB_NAME")
+var CollName string = "employees"
+
 func getURI() string {
 	return fmt.Sprintf("mongodb://%s:%s@mongodb:27017", os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"))
 }
@@ -25,9 +28,8 @@ func ConnectDB() (*mongo.Client, error) {
 	return mongo.Connect(ctx, opts)
 }
 
-func CreateDBIndexes(db *mongo.Database) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func CreateDBIndexes(client *mongo.Client) ([]string, error) {
+    db := client.Database(DBName)
 	coll := db.Collection("employees")
 	index := []mongo.IndexModel{
 		{
@@ -76,5 +78,7 @@ func CreateDBIndexes(db *mongo.Database) ([]string, error) {
 			Keys: bson.M{"competence": 1},
 		},
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	return coll.Indexes().CreateMany(ctx, index)
 }

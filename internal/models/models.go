@@ -2,120 +2,127 @@ package models
 
 import (
 	"context"
-	"time"
+	// "fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/msik-404/micro-appoint-employees/internal/database"
 )
 
 // Stores work time intervals. Time is stored as number of minutes since 00:00.
 type TimeFrame struct {
-	From int `bson:"from,omitempty"`
-	To   int `bson:"to,omitempty"`
+	From *int32 `bson:"from,omitempty"`
+	To   *int32 `bson:"to,omitempty"`
 }
 
 // At each day there may be many work time intervals.
 type WorkTimes struct {
-	Mo []TimeFrame `bson:"mo,omitempty"`
-	Tu []TimeFrame `bson:"tu,omitempty"`
-	We []TimeFrame `bson:"we,omitempty"`
-	Th []TimeFrame `bson:"th,omitempty"`
-	Fr []TimeFrame `bson:"fr,omitempty"`
-	Sa []TimeFrame `bson:"sa,omitempty"`
-	Su []TimeFrame `bson:"su,omitempty"`
+	Mo []*TimeFrame `bson:"mo,omitempty"`
+	Tu []*TimeFrame `bson:"tu,omitempty"`
+	We []*TimeFrame `bson:"we,omitempty"`
+	Th []*TimeFrame `bson:"th,omitempty"`
+	Fr []*TimeFrame `bson:"fr,omitempty"`
+	Sa []*TimeFrame `bson:"sa,omitempty"`
+	Su []*TimeFrame `bson:"su,omitempty"`
 }
 
 // Employees not only have personal work times but also competence:
 // set of services which they can perform.
 type Employee struct {
 	ID         primitive.ObjectID   `bson:"_id,omitempty"`
-	Name       string               `bson:"name,omitempty"`
-	Surname    string               `bson:"surname,omitempty"`
-	WorkTimes  WorkTimes            `bson:"work_times,omitempty"`
-	Competence []primitive.ObjectID `bson:"competence,omitempty"`
-}
-
-func (employee *Employee) InsertOne(
-	db *mongo.Database,
-) (*mongo.InsertOneResult, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	coll := db.Collection("employees")
-	return coll.InsertOne(ctx, employee)
-}
-
-type EmployeeUpdate struct {
-	Name       string               `bson:"name,omitempty"`
-	Surname    string               `bson:"surname,omitempty"`
+	CompanyID  primitive.ObjectID   `bson:"company_id,omitempty"`
+	Name       *string              `bson:"name,omitempty"`
+	Surname    *string              `bson:"surname,omitempty"`
 	WorkTimes  *WorkTimes           `bson:"work_times,omitempty"`
 	Competence []primitive.ObjectID `bson:"competence,omitempty"`
 }
 
-func (employeeUpdate *EmployeeUpdate) UpdateOne(
+func (employee *Employee) InsertOne(
+	ctx context.Context,
+	db *mongo.Database,
+) (*mongo.InsertOneResult, error) {
+
+	coll := db.Collection(database.CollName)
+	return coll.InsertOne(ctx, employee)
+}
+
+// func toBsonRemoveEmpty(value any) (doc *bson.M, err error) {
+// 	data, err := bson.Marshal(value)
+// 	if err != nil {
+// 		return
+// 	}
+// 	err = bson.Unmarshal(data, &doc)
+// 	return
+// }
+//
+// func getUpdateTerms(updateMap *bson.M) bson.M {
+// 	updateTerms := bson.M{}
+// 	for key, value := range *updateMap {
+// 		if key != "_id" {
+// 			key := fmt.Sprintf("services.$.%s", key)
+// 			updateTerms[key] = value
+// 		}
+// 	}
+// 	return updateTerms
+// }
+
+func (employeeUpdate *Employee) UpdateOne(
+	ctx context.Context,
 	db *mongo.Database,
 	employeeID primitive.ObjectID,
 ) (*mongo.UpdateResult, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	coll := db.Collection("employees")
+	coll := db.Collection(database.CollName)
 
 	update := bson.M{"$set": employeeUpdate}
 	return coll.UpdateByID(ctx, employeeID, update)
 }
 
 func FindOneEmployee(
+	ctx context.Context,
 	db *mongo.Database,
 	employeeID primitive.ObjectID,
 ) *mongo.SingleResult {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	opts := options.FindOne()
 	opts.SetProjection(bson.D{
-        {Key: "_id", Value: 0},
+		{Key: "_id", Value: 0},
 	})
 
-	coll := db.Collection("employees")
+	coll := db.Collection(database.CollName)
 	filter := bson.M{"_id": employeeID}
 	return coll.FindOne(ctx, filter, opts)
 }
 
 func FindManyEmployees(
+	ctx context.Context,
 	db *mongo.Database,
 	startValue primitive.ObjectID,
 	nPerPage int64,
 ) (*mongo.Cursor, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	opts := options.Find()
 	opts.SetSort(bson.M{"_id": -1})
 	opts.SetLimit(nPerPage)
 	opts.SetProjection(bson.D{
-        {Key: "work_times", Value: 0},
-        {Key: "competence", Value: 0},
+		{Key: "work_times", Value: 0},
+		{Key: "competence", Value: 0},
 	})
 
 	filter := bson.M{}
 	if !startValue.IsZero() {
 		filter = bson.M{"_id": bson.M{"$lt": startValue}}
 	}
-	coll := db.Collection("employees")
+	coll := db.Collection(database.CollName)
 	return coll.Find(ctx, filter, opts)
 }
 
 func DeleteOneEmployee(
+	ctx context.Context,
 	db *mongo.Database,
 	employeeID primitive.ObjectID,
 ) (*mongo.DeleteResult, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	coll := db.Collection("employees")
+	coll := db.Collection(database.CollName)
 	filter := bson.M{"_id": employeeID}
 	return coll.DeleteOne(ctx, filter)
 }

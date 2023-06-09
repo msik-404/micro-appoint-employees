@@ -19,7 +19,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -C ./cmd/employees/ -o employees
 # WORKDIR /
 # COPY --from=build-stage app/cmd/employees/employees /employees
 
-EXPOSE 8080
+EXPOSE 50051
 
 # Run
 # CMD ["/employees"]
