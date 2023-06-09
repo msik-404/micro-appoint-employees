@@ -35,10 +35,19 @@ func verifyInteger[T constraints.Integer](value *T, low T, high T) (*T, error) {
 
 func verifyTimeFrame(timeFrame *TimeFrame) (*TimeFrame, error) {
 	if timeFrame != nil {
-		if *timeFrame.From < 0 || *timeFrame.To > 23*60+59 {
+		if *timeFrame.From < 0 ||
+			*timeFrame.To < 0 ||
+			*timeFrame.From > 23*60+59 ||
+			*timeFrame.To > 23*60+59 {
 			return nil, status.Error(
 				codes.InvalidArgument,
 				"Value should be smaller than 1439 and greater than 0",
+			)
+		}
+		if *timeFrame.From >= *timeFrame.To {
+			return nil, status.Error(
+				codes.InvalidArgument,
+				"From value should be smaller than To value",
 			)
 		}
 	}
