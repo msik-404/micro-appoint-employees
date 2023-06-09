@@ -197,6 +197,10 @@ func (s *Server) FindManyEmployees(
 	ctx context.Context,
 	request *EmployeesRequest,
 ) (reply *EmployeesReply, err error) {
+	companyID, err := hexToObjectID(request.CompanyId)
+	if err != nil {
+		return nil, err
+	}
 	startValue := primitive.NilObjectID
 	if request.StartValue != nil {
 		startValue, err = primitive.ObjectIDFromHex(*request.StartValue)
@@ -209,7 +213,7 @@ func (s *Server) FindManyEmployees(
 		nPerPage = *request.NPerPage
 	}
 	db := s.Client.Database(database.DBName)
-	cursor, err := models.FindManyEmployees(ctx, db, startValue, nPerPage)
+	cursor, err := models.FindManyEmployees(ctx, db, companyID, startValue, nPerPage)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

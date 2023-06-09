@@ -98,6 +98,7 @@ func FindOneEmployee(
 func FindManyEmployees(
 	ctx context.Context,
 	db *mongo.Database,
+    companyID primitive.ObjectID,
 	startValue primitive.ObjectID,
 	nPerPage int64,
 ) (*mongo.Cursor, error) {
@@ -109,7 +110,7 @@ func FindManyEmployees(
 		{Key: "competence", Value: 0},
 	})
 
-	filter := bson.M{}
+    filter := bson.M{"company_id": companyID}
 	if !startValue.IsZero() {
 		filter = bson.M{"_id": bson.M{"$lt": startValue}}
 	}

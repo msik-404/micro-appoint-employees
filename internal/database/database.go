@@ -77,6 +77,9 @@ func CreateDBIndexes(client *mongo.Client) ([]string, error) {
 		{
 			Keys: bson.M{"competence": 1},
 		},
+		{
+			Keys: bson.M{"company_id": 1},
+		},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

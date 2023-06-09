@@ -20,7 +20,6 @@ message EmployeeShort {
     optional string surname = 3;
 }
 
-
 message EmployeesReply {
     repeated EmployeeShort employees = 1;
 }
@@ -30,8 +29,9 @@ message EmployeeRequest {
 }
 
 message EmployeesRequest {
-    optional string start_value = 1;
-    optional int64 n_per_page = 2;
+    string company_id = 1;
+    optional string start_value = 2;
+    optional int64 n_per_page = 3;
 }
 
 message TimeFrame {
@@ -75,5 +75,4 @@ message UpdateEmployeeRequest {
     optional string surname = 4;
     optional WorkTimes work_times = 5;
     repeated string competence = 6;
-
 }
