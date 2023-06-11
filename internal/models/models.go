@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	// "fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,19 +13,19 @@ import (
 
 // Stores work time intervals. Time is stored as number of minutes since 00:00.
 type TimeFrame struct {
-	From *int32 `bson:"from,omitempty"`
-	To   *int32 `bson:"to,omitempty"`
+	From int32 `bson:"from,omitempty"`
+	To   int32 `bson:"to,omitempty"`
 }
 
 // At each day there may be many work time intervals.
 type WorkTimes struct {
-	Mo []*TimeFrame `bson:"mo,omitempty"`
-	Tu []*TimeFrame `bson:"tu,omitempty"`
-	We []*TimeFrame `bson:"we,omitempty"`
-	Th []*TimeFrame `bson:"th,omitempty"`
-	Fr []*TimeFrame `bson:"fr,omitempty"`
-	Sa []*TimeFrame `bson:"sa,omitempty"`
-	Su []*TimeFrame `bson:"su,omitempty"`
+	Mo []TimeFrame `bson:"mo,omitempty"`
+	Tu []TimeFrame `bson:"tu,omitempty"`
+	We []TimeFrame `bson:"we,omitempty"`
+	Th []TimeFrame `bson:"th,omitempty"`
+	Fr []TimeFrame `bson:"fr,omitempty"`
+	Sa []TimeFrame `bson:"sa,omitempty"`
+	Su []TimeFrame `bson:"su,omitempty"`
 }
 
 // Employees not only have personal work times but also competence:
@@ -34,9 +33,9 @@ type WorkTimes struct {
 type Employee struct {
 	ID         primitive.ObjectID   `bson:"_id,omitempty"`
 	CompanyID  primitive.ObjectID   `bson:"company_id,omitempty"`
-	Name       *string              `bson:"name,omitempty"`
-	Surname    *string              `bson:"surname,omitempty"`
-	WorkTimes  *WorkTimes           `bson:"work_times,omitempty"`
+	Name       string               `bson:"name,omitempty"`
+	Surname    string               `bson:"surname,omitempty"`
+	WorkTimes  WorkTimes            `bson:"work_times,omitempty"`
 	Competence []primitive.ObjectID `bson:"competence,omitempty"`
 }
 
@@ -49,27 +48,16 @@ func (employee *Employee) InsertOne(
 	return coll.InsertOne(ctx, employee)
 }
 
-// func toBsonRemoveEmpty(value any) (doc *bson.M, err error) {
-// 	data, err := bson.Marshal(value)
-// 	if err != nil {
-// 		return
-// 	}
-// 	err = bson.Unmarshal(data, &doc)
-// 	return
-// }
-//
-// func getUpdateTerms(updateMap *bson.M) bson.M {
-// 	updateTerms := bson.M{}
-// 	for key, value := range *updateMap {
-// 		if key != "_id" {
-// 			key := fmt.Sprintf("services.$.%s", key)
-// 			updateTerms[key] = value
-// 		}
-// 	}
-// 	return updateTerms
-// }
+type EmployeeUpdate struct {
+	ID         primitive.ObjectID   `bson:"_id,omitempty"`
+	CompanyID  *primitive.ObjectID  `bson:"company_id,omitempty"`
+	Name       *string              `bson:"name,omitempty"`
+	Surname    *string              `bson:"surname,omitempty"`
+	WorkTimes  *WorkTimes           `bson:"work_times,omitempty"`
+	Competence []primitive.ObjectID `bson:"competence,omitempty"`
+}
 
-func (employeeUpdate *Employee) UpdateOne(
+func (employeeUpdate *EmployeeUpdate) UpdateOne(
 	ctx context.Context,
 	db *mongo.Database,
 	employeeID primitive.ObjectID,
@@ -98,7 +86,7 @@ func FindOneEmployee(
 func FindManyEmployees(
 	ctx context.Context,
 	db *mongo.Database,
-    companyID primitive.ObjectID,
+	companyID primitive.ObjectID,
 	startValue primitive.ObjectID,
 	nPerPage int64,
 ) (*mongo.Cursor, error) {
@@ -110,7 +98,7 @@ func FindManyEmployees(
 		{Key: "competence", Value: 0},
 	})
 
-    filter := bson.M{"company_id": companyID}
+	filter := bson.M{"company_id": companyID}
 	if !startValue.IsZero() {
 		filter = bson.M{"_id": bson.M{"$lt": startValue}}
 	}

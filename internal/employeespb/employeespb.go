@@ -1,4 +1,4 @@
-package employeespb 
+package employeespb
 
 import (
 	"context"
@@ -23,42 +23,42 @@ func (s *Server) AddEmployee(
 	ctx context.Context,
 	request *AddEmployeeRequest,
 ) (*emptypb.Empty, error) {
-	companyID, err := hexToObjectID(request.CompanyId)
+	companyID, err := hexToObjectID(request.GetCompanyId())
 	if err != nil {
 		return nil, err
 	}
-	name, err := verifyString(request.Name, 30)
+	err = verifyString(request.Name, 30)
 	if err != nil {
 		return nil, err
 	}
-	surname, err := verifyString(request.Surname, 30)
+	err = verifyString(request.Surname, 30)
 	if err != nil {
 		return nil, err
 	}
-	workTimes, err := verifyWorkTimes(request.WorkTimes)
+	err = verifyWorkTimes(request.WorkTimes)
 	if err != nil {
 		return nil, err
 	}
-	competencePlain, err := verifyCompetence(request.Competence)
+	err = verifyCompetence(request.Competence)
 	if err != nil {
 		return nil, err
 	}
 	var competence []primitive.ObjectID
-	for _, hex := range competencePlain {
+	for _, hex := range request.GetCompetence() {
 		serviceID, err := hexToObjectID(hex)
 		if err != nil {
 			return nil, err
 		}
 		competence = append(competence, serviceID)
 	}
-    var workTimesModel *models.WorkTimes
-    if workTimes != nil {
-        workTimesModel = workTimesGRPCToModel(workTimes)
-    }
+	var workTimesModel models.WorkTimes
+	if request.WorkTimes != nil {
+		workTimesModel = workTimesGRPCToModel(request.GetWorkTimes())
+	}
 	newEmployee := models.Employee{
 		CompanyID:  companyID,
-		Name:       name,
-		Surname:    surname,
+		Name:       request.GetName(),
+		Surname:    request.GetSurname(),
 		WorkTimes:  workTimesModel,
 		Competence: competence,
 	}
@@ -76,33 +76,36 @@ func (s *Server) UpdateEmployee(
 	ctx context.Context,
 	request *UpdateEmployeeRequest,
 ) (*emptypb.Empty, error) {
-	employeeID, err := hexToObjectID(request.Id)
+	employeeID, err := hexToObjectID(request.GetId())
 	if err != nil {
 		return nil, err
 	}
-	// unimplemented
-	// companyID, err := grpcHexToObjectID(*request.CompanyId)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	name, err := verifyString(request.Name, 30)
+	var companyID *primitive.ObjectID
+	if request.CompanyId != nil {
+		ID, err := hexToObjectID(request.GetCompanyId())
+		if err != nil {
+			return nil, err
+		}
+		companyID = &ID
+	}
+	err = verifyString(request.Name, 30)
 	if err != nil {
 		return nil, err
 	}
-	surname, err := verifyString(request.Surname, 30)
+	err = verifyString(request.Surname, 30)
 	if err != nil {
 		return nil, err
 	}
-	workTimes, err := verifyWorkTimes(request.WorkTimes)
+	err = verifyWorkTimes(request.WorkTimes)
 	if err != nil {
 		return nil, err
 	}
-	competencePlain, err := verifyCompetence(request.Competence)
+	err = verifyCompetence(request.Competence)
 	if err != nil {
 		return nil, err
 	}
 	var competence []primitive.ObjectID
-	for _, hex := range competencePlain {
+	for _, hex := range request.GetCompetence() {
 		serviceID, err := hexToObjectID(hex)
 		if err != nil {
 			return nil, err
@@ -110,12 +113,14 @@ func (s *Server) UpdateEmployee(
 		competence = append(competence, serviceID)
 	}
 	var workTimesModel *models.WorkTimes
-	if workTimes != nil {
-		workTimesModel = workTimesGRPCToModel(workTimes)
+	if request.WorkTimes != nil {
+		workTimes := workTimesGRPCToModel(request.GetWorkTimes())
+		workTimesModel = &workTimes
 	}
-	employeeUpdate := models.Employee{
-		Name:       name,
-		Surname:    surname,
+	employeeUpdate := models.EmployeeUpdate{
+		CompanyID:  companyID,
+		Name:       request.Name,
+		Surname:    request.Surname,
 		WorkTimes:  workTimesModel,
 		Competence: competence,
 	}
@@ -139,7 +144,7 @@ func (s *Server) DeleteEmployee(
 	ctx context.Context,
 	request *DeleteEmployeeRequest,
 ) (*emptypb.Empty, error) {
-	employeeID, err := hexToObjectID(request.Id)
+	employeeID, err := hexToObjectID(request.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -163,14 +168,14 @@ func (s *Server) FindOneEmployee(
 	ctx context.Context,
 	request *EmployeeRequest,
 ) (*EmployeeReply, error) {
-	employeeID, err := hexToObjectID(request.Id)
+	employeeID, err := hexToObjectID(request.GetId())
 	if err != nil {
 		return nil, err
 	}
 	db := s.Client.Database(database.DBName)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	employeeModel := models.Employee{}
+	var employeeModel models.Employee
 	err = models.FindOneEmployee(ctx, db, employeeID).Decode(&employeeModel)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -179,12 +184,10 @@ func (s *Server) FindOneEmployee(
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	var workTimes *WorkTimes
-	if employeeModel.WorkTimes != nil {
-		workTimes = workTimesModelToGRPC(employeeModel.WorkTimes)
-	}
+	workTimes = workTimesModelToGRPC(&employeeModel.WorkTimes)
 	employeeProto := &EmployeeReply{
-		Name:      employeeModel.Name,
-		Surname:   employeeModel.Surname,
+		Name:      &employeeModel.Name,
+		Surname:   &employeeModel.Surname,
 		WorkTimes: workTimes,
 	}
 	for _, serviceID := range employeeModel.Competence {
@@ -197,18 +200,18 @@ func (s *Server) FindManyEmployees(
 	ctx context.Context,
 	request *EmployeesRequest,
 ) (reply *EmployeesReply, err error) {
-	companyID, err := hexToObjectID(request.CompanyId)
+	companyID, err := hexToObjectID(request.GetCompanyId())
 	if err != nil {
 		return nil, err
 	}
 	startValue := primitive.NilObjectID
 	if request.StartValue != nil {
-		startValue, err = primitive.ObjectIDFromHex(*request.StartValue)
+		startValue, err = primitive.ObjectIDFromHex(request.GetStartValue())
 		if err != nil {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
 	}
-	var nPerPage int64 = 10
+	var nPerPage int64 = 30
 	if request.NPerPage != nil {
 		nPerPage = *request.NPerPage
 	}
@@ -225,10 +228,11 @@ func (s *Server) FindManyEmployees(
 		if err := cursor.Decode(&employeeModel); err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
 		}
+		employeeID := employeeModel.ID.Hex()
 		employeeProto := &EmployeeShort{
-			Id:      employeeModel.ID.Hex(),
-			Name:    employeeModel.Name,
-			Surname: employeeModel.Surname,
+			Id:      &employeeID,
+			Name:    &employeeModel.Name,
+			Surname: &employeeModel.Surname,
 		}
 		reply.Employees = append(reply.Employees, employeeProto)
 	}

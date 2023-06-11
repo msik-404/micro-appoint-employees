@@ -15,7 +15,7 @@ service Api {
 }
 
 message EmployeeShort {
-    string id = 1;
+    optional string id = 1;
     optional string name = 2;
     optional string surname = 3;
 }
@@ -25,11 +25,11 @@ message EmployeesReply {
 }
 
 message EmployeeRequest {
-    string id = 1;
+    optional string id = 1;
 }
 
 message EmployeesRequest {
-    string company_id = 1;
+    optional string company_id = 1;
     optional string start_value = 2;
     optional int64 n_per_page = 3;
 }
@@ -57,7 +57,7 @@ message EmployeeReply {
 }
 
 message AddEmployeeRequest {
-    string company_id = 1;
+    optional string company_id = 1;
     optional string name = 2;
     optional string surname = 3;
     optional WorkTimes work_times = 4;
@@ -65,11 +65,11 @@ message AddEmployeeRequest {
 }
 
 message DeleteEmployeeRequest {
-    string id = 1;
+    optional string id = 1;
 }
 
 message UpdateEmployeeRequest {
-    string id = 1;
+    optional string id = 1;
     optional string company_id = 2;
     optional string name = 3;
     optional string surname = 4;

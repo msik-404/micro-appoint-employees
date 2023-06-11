@@ -20,6 +20,7 @@ services:
   mongodb:
     image: mongo
     container_name: employees-db
+    hostname: employees-db
     restart: always
     networks:
       - micro-appoint-net

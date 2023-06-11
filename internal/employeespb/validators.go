@@ -6,23 +6,23 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func verifyString(value *string, maxLength int) (*string, error) {
+func verifyString(value *string, maxLength int) error {
 	if value != nil {
 		if len(*value) > int(maxLength) {
-			return nil, status.Errorf(
+			return status.Errorf(
 				codes.InvalidArgument,
 				"Value should be shorter than %d",
 				maxLength,
 			)
 		}
 	}
-	return value, nil
+	return nil
 }
 
-func verifyInteger[T constraints.Integer](value *T, low T, high T) (*T, error) {
+func verifyInteger[T constraints.Integer](value *T, low T, high T) error {
 	if value != nil {
 		if *value > high || *value <= low {
-			return nil, status.Errorf(
+			return status.Errorf(
 				codes.InvalidArgument,
 				"Value should be smaller than %d and greater than %d",
 				high,
@@ -30,81 +30,81 @@ func verifyInteger[T constraints.Integer](value *T, low T, high T) (*T, error) {
 			)
 		}
 	}
-	return value, nil
+	return nil
 }
 
-func verifyTimeFrame(timeFrame *TimeFrame) (*TimeFrame, error) {
+func verifyTimeFrame(timeFrame *TimeFrame) error {
 	if timeFrame != nil {
 		if *timeFrame.From < 0 ||
 			*timeFrame.To < 0 ||
 			*timeFrame.From > 23*60+59 ||
 			*timeFrame.To > 23*60+59 {
-			return nil, status.Error(
+			return status.Error(
 				codes.InvalidArgument,
 				"Value should be smaller than 1439 and greater than 0",
 			)
 		}
 		if *timeFrame.From >= *timeFrame.To {
-			return nil, status.Error(
+			return status.Error(
 				codes.InvalidArgument,
 				"From value should be smaller than To value",
 			)
 		}
 	}
-	return timeFrame, nil
+	return nil
 }
 
-func verifyWorkTimes(workTimes *WorkTimes) (*WorkTimes, error) {
+func verifyWorkTimes(workTimes *WorkTimes) error {
 	if workTimes != nil {
 		for _, timeFrame := range workTimes.Mo {
-			if _, err := verifyTimeFrame(timeFrame); err != nil {
-				return nil, err
+			if err := verifyTimeFrame(timeFrame); err != nil {
+				return err
 			}
 		}
 		for _, timeFrame := range workTimes.Tu {
-			if _, err := verifyTimeFrame(timeFrame); err != nil {
-				return nil, err
+			if err := verifyTimeFrame(timeFrame); err != nil {
+				return err
 			}
 		}
 		for _, timeFrame := range workTimes.We {
-			if _, err := verifyTimeFrame(timeFrame); err != nil {
-				return nil, err
+			if err := verifyTimeFrame(timeFrame); err != nil {
+				return err
 			}
 		}
 		for _, timeFrame := range workTimes.Th {
-			if _, err := verifyTimeFrame(timeFrame); err != nil {
-				return nil, err
+			if err := verifyTimeFrame(timeFrame); err != nil {
+				return err
 			}
 		}
 		for _, timeFrame := range workTimes.Fr {
-			if _, err := verifyTimeFrame(timeFrame); err != nil {
-				return nil, err
+			if err := verifyTimeFrame(timeFrame); err != nil {
+				return err
 			}
 		}
 		for _, timeFrame := range workTimes.Sa {
-			if _, err := verifyTimeFrame(timeFrame); err != nil {
-				return nil, err
+			if err := verifyTimeFrame(timeFrame); err != nil {
+				return  err
 			}
 		}
 		for _, timeFrame := range workTimes.Su {
-			if _, err := verifyTimeFrame(timeFrame); err != nil {
-				return nil, err
+			if err := verifyTimeFrame(timeFrame); err != nil {
+				return err
 			}
 		}
 	}
-	return workTimes, nil
+	return nil
 }
 
-func verifyCompetence(competence []string) ([]string, error) {
+func verifyCompetence(competence []string) error {
 	if len(competence) != 0 {
 		for _, hex := range competence {
 			if len(hex) != 24 {
-				return nil, status.Error(
+				return status.Error(
 					codes.InvalidArgument,
 					"This is not proper hex value for objectID",
 				)
 			}
 		}
 	}
-	return competence, nil
+	return nil
 }
