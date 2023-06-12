@@ -80,13 +80,9 @@ func (s *Server) UpdateEmployee(
 	if err != nil {
 		return nil, err
 	}
-	var companyID *primitive.ObjectID
-	if request.CompanyId != nil {
-		ID, err := hexToObjectID(request.GetCompanyId())
-		if err != nil {
-			return nil, err
-		}
-		companyID = &ID
+	companyID, err := hexToObjectID(request.GetCompanyId())
+	if err != nil {
+		return nil, err
 	}
 	err = verifyString(request.Name, 30)
 	if err != nil {
@@ -118,7 +114,6 @@ func (s *Server) UpdateEmployee(
 		workTimesModel = &workTimes
 	}
 	employeeUpdate := models.EmployeeUpdate{
-		CompanyID:  companyID,
 		Name:       request.Name,
 		Surname:    request.Surname,
 		WorkTimes:  workTimesModel,
@@ -127,14 +122,14 @@ func (s *Server) UpdateEmployee(
 	db := s.Client.Database(database.DBName)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	result, err := employeeUpdate.UpdateOne(ctx, db, employeeID)
+	result, err := employeeUpdate.UpdateOne(ctx, db, companyID, employeeID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if result.MatchedCount == 0 {
 		return nil, status.Error(
 			codes.NotFound,
-			"Employee with that id was not found",
+			"Employee with that companyID and EmployeeID was not found",
 		)
 	}
 	return &emptypb.Empty{}, nil
@@ -148,17 +143,21 @@ func (s *Server) DeleteEmployee(
 	if err != nil {
 		return nil, err
 	}
+	companyID, err := hexToObjectID(request.GetCompanyId())
+	if err != nil {
+		return nil, err
+	}
 	db := s.Client.Database(database.DBName)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	result, err := models.DeleteOneEmployee(ctx, db, employeeID)
+	result, err := models.DeleteOneEmployee(ctx, db, companyID, employeeID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if result.DeletedCount == 0 {
 		return nil, status.Error(
 			codes.NotFound,
-			"Employee with that id was not found",
+			"Employee with that companyID and EmployeeID was not found",
 		)
 	}
 	return &emptypb.Empty{}, nil

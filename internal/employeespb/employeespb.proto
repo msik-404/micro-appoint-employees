@@ -65,12 +65,13 @@ message AddEmployeeRequest {
 }
 
 message DeleteEmployeeRequest {
-    optional string id = 1;
+    optional string company_id = 1;
+    optional string id = 2;
 }
 
 message UpdateEmployeeRequest {
-    optional string id = 1;
-    optional string company_id = 2;
+    optional string company_id = 1;
+    optional string id = 2;
     optional string name = 3;
     optional string surname = 4;
     optional WorkTimes work_times = 5;

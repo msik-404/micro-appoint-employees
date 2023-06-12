@@ -49,8 +49,6 @@ func (employee *Employee) InsertOne(
 }
 
 type EmployeeUpdate struct {
-	ID         primitive.ObjectID   `bson:"_id,omitempty"`
-	CompanyID  *primitive.ObjectID  `bson:"company_id,omitempty"`
 	Name       *string              `bson:"name,omitempty"`
 	Surname    *string              `bson:"surname,omitempty"`
 	WorkTimes  *WorkTimes           `bson:"work_times,omitempty"`
@@ -60,12 +58,17 @@ type EmployeeUpdate struct {
 func (employeeUpdate *EmployeeUpdate) UpdateOne(
 	ctx context.Context,
 	db *mongo.Database,
+	companyID primitive.ObjectID,
 	employeeID primitive.ObjectID,
 ) (*mongo.UpdateResult, error) {
 	coll := db.Collection(database.CollName)
 
+	filter := bson.M{
+		"_id":        employeeID,
+		"company_id": companyID,
+	}
 	update := bson.M{"$set": employeeUpdate}
-	return coll.UpdateByID(ctx, employeeID, update)
+	return coll.UpdateOne(ctx, filter, update)
 }
 
 func FindOneEmployee(
@@ -109,9 +112,13 @@ func FindManyEmployees(
 func DeleteOneEmployee(
 	ctx context.Context,
 	db *mongo.Database,
+	companyID primitive.ObjectID,
 	employeeID primitive.ObjectID,
 ) (*mongo.DeleteResult, error) {
 	coll := db.Collection(database.CollName)
-	filter := bson.M{"_id": employeeID}
+	filter := bson.M{
+		"_id":        employeeID,
+		"company_id": companyID,
+	}
 	return coll.DeleteOne(ctx, filter)
 }
