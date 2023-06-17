@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -95,7 +96,7 @@ func FindManyEmployees(
 ) (*mongo.Cursor, error) {
 	opts := options.Find()
 	opts.SetSort(bson.M{"_id": -1})
-	opts.SetLimit(nPerPage)
+	opts.SetLimit(nPerPage) 
 	opts.SetProjection(bson.D{
 		{Key: "work_times", Value: 0},
 		{Key: "competence", Value: 0},
@@ -103,7 +104,37 @@ func FindManyEmployees(
 
 	filter := bson.M{"company_id": companyID}
 	if !startValue.IsZero() {
-		filter = bson.M{"_id": bson.M{"$lt": startValue}}
+		filter["_id"] = bson.M{"$lt": startValue}
+	}
+	coll := db.Collection(database.CollName)
+	return coll.Find(ctx, filter, opts)
+}
+
+func FindManyTimeFrames(
+	ctx context.Context,
+	db *mongo.Database,
+	companyID primitive.ObjectID,
+	serviceID primitive.ObjectID,
+	day string,
+	startValue primitive.ObjectID,
+	nPerPage int64,
+) (*mongo.Cursor, error) {
+	opts := options.Find()
+	opts.SetSort(bson.M{"_id": -1})
+	opts.SetLimit(nPerPage)
+	opts.SetProjection(bson.D{
+		{Key: "_id", Value: 1},
+		{Key: "name", Value: 1},
+		{Key: "surname", Value: 1},
+		{Key: fmt.Sprintf("work_times.%s", day), Value: 1},
+	})
+
+	filter := bson.M{
+        "company_id": companyID,
+        "competence": serviceID,
+    }
+	if !startValue.IsZero() {
+		filter["_id"] = bson.M{"$lt": startValue}
 	}
 	coll := db.Collection(database.CollName)
 	return coll.Find(ctx, filter, opts)

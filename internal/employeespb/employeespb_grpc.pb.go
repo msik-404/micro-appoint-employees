@@ -28,6 +28,7 @@ type ApiClient interface {
 	DeleteEmployee(ctx context.Context, in *DeleteEmployeeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	FindOneEmployee(ctx context.Context, in *EmployeeRequest, opts ...grpc.CallOption) (*EmployeeReply, error)
 	FindManyEmployees(ctx context.Context, in *EmployeesRequest, opts ...grpc.CallOption) (*EmployeesReply, error)
+	FindManyTimeSlots(ctx context.Context, in *TimeSlotsRequest, opts ...grpc.CallOption) (*TimeSlotsReply, error)
 }
 
 type apiClient struct {
@@ -83,6 +84,15 @@ func (c *apiClient) FindManyEmployees(ctx context.Context, in *EmployeesRequest,
 	return out, nil
 }
 
+func (c *apiClient) FindManyTimeSlots(ctx context.Context, in *TimeSlotsRequest, opts ...grpc.CallOption) (*TimeSlotsReply, error) {
+	out := new(TimeSlotsReply)
+	err := c.cc.Invoke(ctx, "/employeespb.Api/FindManyTimeSlots", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApiServer is the server API for Api service.
 // All implementations must embed UnimplementedApiServer
 // for forward compatibility
@@ -92,6 +102,7 @@ type ApiServer interface {
 	DeleteEmployee(context.Context, *DeleteEmployeeRequest) (*emptypb.Empty, error)
 	FindOneEmployee(context.Context, *EmployeeRequest) (*EmployeeReply, error)
 	FindManyEmployees(context.Context, *EmployeesRequest) (*EmployeesReply, error)
+	FindManyTimeSlots(context.Context, *TimeSlotsRequest) (*TimeSlotsReply, error)
 	mustEmbedUnimplementedApiServer()
 }
 
@@ -113,6 +124,9 @@ func (UnimplementedApiServer) FindOneEmployee(context.Context, *EmployeeRequest)
 }
 func (UnimplementedApiServer) FindManyEmployees(context.Context, *EmployeesRequest) (*EmployeesReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindManyEmployees not implemented")
+}
+func (UnimplementedApiServer) FindManyTimeSlots(context.Context, *TimeSlotsRequest) (*TimeSlotsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindManyTimeSlots not implemented")
 }
 func (UnimplementedApiServer) mustEmbedUnimplementedApiServer() {}
 
@@ -217,6 +231,24 @@ func _Api_FindManyEmployees_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Api_FindManyTimeSlots_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TimeSlotsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApiServer).FindManyTimeSlots(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/employeespb.Api/FindManyTimeSlots",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApiServer).FindManyTimeSlots(ctx, req.(*TimeSlotsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Api_ServiceDesc is the grpc.ServiceDesc for Api service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -243,6 +275,10 @@ var Api_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FindManyEmployees",
 			Handler:    _Api_FindManyEmployees_Handler,
+		},
+		{
+			MethodName: "FindManyTimeSlots",
+			Handler:    _Api_FindManyTimeSlots_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

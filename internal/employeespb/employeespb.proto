@@ -12,6 +12,7 @@ service Api {
     rpc DeleteEmployee (DeleteEmployeeRequest) returns (google.protobuf.Empty) {}
     rpc FindOneEmployee (EmployeeRequest) returns (EmployeeReply) {}
     rpc FindManyEmployees (EmployeesRequest) returns (EmployeesReply) {}
+    rpc FindManyTimeSlots (TimeSlotsRequest) returns (TimeSlotsReply) {}
 }
 
 message EmployeeShort {
@@ -76,4 +77,22 @@ message UpdateEmployeeRequest {
     optional string surname = 4;
     optional WorkTimes work_times = 5;
     repeated string competence = 6;
+}
+
+message TimeSlotsRequest {
+    optional string company_id = 1;
+    optional string service_id = 2;
+    optional int32 service_duration = 3;
+    optional int32 day = 4;
+    optional string start_value = 5;
+    optional int64 n_per_page = 6;
+}
+
+message EmployeeTimeSlots {
+    optional EmployeeShort employee_info = 1;
+    repeated TimeFrame time_slots = 2;
+}
+
+message TimeSlotsReply {
+    repeated EmployeeTimeSlots employee_time_slots = 1;
 }

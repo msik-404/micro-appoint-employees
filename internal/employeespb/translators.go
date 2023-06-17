@@ -95,3 +95,54 @@ func workTimesModelToGRPC(workTimes *models.WorkTimes) *WorkTimes {
 	}
 	return &grpcWorkTimes
 }
+
+func IntToDay(intDay int32) (string, error) {
+	switch intDay {
+	case 0:
+		return "mo", nil
+	case 1:
+		return "tu", nil
+	case 2:
+		return "we", nil
+	case 3:
+		return "th", nil
+	case 4:
+		return "fr", nil
+	case 5:
+		return "sa", nil
+	case 6:
+		return "su", nil
+	default:
+		return "", status.Error(
+			codes.InvalidArgument,
+			"Integer representing day is invalid, should be in range of 0-6",
+		)
+	}
+}
+
+func IntToTimeFrame(
+	employee *models.Employee,
+	intDay int32,
+) ([]models.TimeFrame, error) {
+	switch intDay {
+	case 0:
+		return employee.WorkTimes.Mo, nil
+	case 1:
+		return employee.WorkTimes.Tu, nil
+	case 2:
+		return employee.WorkTimes.We, nil
+	case 3:
+		return employee.WorkTimes.Th, nil
+	case 4:
+		return employee.WorkTimes.Fr, nil
+	case 5:
+		return employee.WorkTimes.Sa, nil
+	case 6:
+		return employee.WorkTimes.Su, nil
+	default:
+		return nil, status.Error(
+			codes.InvalidArgument,
+			"Integer representing day is invalid, should be in range of 0-6",
+		)
+	}
+}

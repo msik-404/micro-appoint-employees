@@ -221,6 +221,7 @@ func (s *Server) FindManyEmployees(
 	}
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
+	defer cursor.Close(ctx)
 	reply = &EmployeesReply{}
 	for cursor.Next(ctx) {
 		var employeeModel models.Employee
@@ -242,4 +243,118 @@ func (s *Server) FindManyEmployees(
 		)
 	}
 	return reply, nil
+}
+
+func (s *Server) FindManyTimeFrames(
+	ctx context.Context,
+	request *TimeSlotsRequest,
+) (*TimeSlotsReply, error) {
+	companyID, err := hexToObjectID(request.GetCompanyId())
+	if err != nil {
+		return nil, err
+	}
+	serviceID, err := hexToObjectID(request.GetServiceId())
+	if err != nil {
+		return nil, err
+	}
+	if request.Day == nil {
+		return nil, status.Error(
+			codes.InvalidArgument,
+			"Day field should be set to integer in range 0-6",
+		)
+	}
+	day, err := IntToDay(request.GetDay())
+	if err != nil {
+		return nil, err
+	}
+	if request.ServiceDuration == nil {
+		return nil, status.Error(
+			codes.InvalidArgument,
+			"Service Duration field should be set to integer in range 0-480",
+		)
+	}
+	serviceDuration := request.GetServiceDuration()
+	err = verifyInteger(&serviceDuration, 0, 480)
+	if err != nil {
+		return nil, status.Error(
+			codes.InvalidArgument,
+			"Service Duration field should be set to integer in range 0-480",
+		)
+	}
+	startValue := primitive.NilObjectID
+	if request.StartValue != nil {
+		startValue, err = primitive.ObjectIDFromHex(request.GetStartValue())
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
+	}
+	var nPerPage int64 = 30
+	if request.NPerPage != nil {
+		nPerPage = *request.NPerPage
+	}
+	db := s.Client.Database(database.DBName)
+	cursor, err := models.FindManyTimeFrames(
+		ctx,
+		db,
+		companyID,
+		serviceID,
+		day,
+		startValue,
+		nPerPage,
+	)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	var reply TimeSlotsReply 
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	defer cursor.Close(ctx)
+	// for each employee
+	for cursor.Next(ctx) {
+		var employee models.Employee
+		if err := cursor.Decode(&employee); err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		// slice of work time frames
+		timeFrames, err := IntToTimeFrame(&employee, request.GetDay())
+		if err != nil {
+			return nil, err
+		}
+		id := employee.ID.Hex()
+		employeeInfo := EmployeeShort{
+			Id:      &id,
+			Name:    &employee.Name,
+			Surname: &employee.Surname,
+		}
+		employeeTimeSlots := EmployeeTimeSlots{
+			EmployeeInfo: &employeeInfo,
+		}
+		// for each work time frame, get all service slots
+		for i := range timeFrames {
+			serviceSlots := GetServiceSlots(
+				&timeFrames[i],
+				serviceDuration,
+				TimeSlotLength,
+				BrakeDuration,
+			)
+			// flatten service slots
+			for j := range serviceSlots {
+				employeeTimeSlots.TimeSlots = append(
+					employeeTimeSlots.TimeSlots,
+					serviceSlots[j],
+				)
+			}
+		}
+		reply.EmployeeTimeSlots = append(
+			reply.EmployeeTimeSlots,
+			&employeeTimeSlots,
+		)
+	}
+	if len(reply.EmployeeTimeSlots) == 0 {
+		return nil, status.Error(
+			codes.NotFound,
+			"There aren't any time slots",
+		)
+	}
+	return &reply, nil
 }
