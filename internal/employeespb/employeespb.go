@@ -249,7 +249,7 @@ func (s *Server) FindManyEmployees(
 	return reply, nil
 }
 
-func (s *Server) FindManyTimeFrames(
+func (s *Server) FindManyTimeSlots(
 	ctx context.Context,
 	request *TimeSlotsRequest,
 ) (*TimeSlotsReply, error) {
