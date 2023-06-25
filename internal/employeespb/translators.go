@@ -65,32 +65,32 @@ func timeFrameModelToGRPC(timeFrame *models.TimeFrame) TimeFrame {
 
 func workTimesModelToGRPC(workTimes *models.WorkTimes) *WorkTimes {
 	grpcWorkTimes := WorkTimes{}
-	for _, timeFrame := range workTimes.Mo {
-		grpcTimeFrame := timeFrameModelToGRPC(&timeFrame)
+	for i := range workTimes.Mo {
+		grpcTimeFrame := timeFrameModelToGRPC(&workTimes.Mo[i])
 		grpcWorkTimes.Mo = append(grpcWorkTimes.Mo, &grpcTimeFrame)
 	}
-	for _, timeFrame := range workTimes.Tu {
-		grpcTimeFrame := timeFrameModelToGRPC(&timeFrame)
+	for i := range workTimes.Tu {
+		grpcTimeFrame := timeFrameModelToGRPC(&workTimes.Tu[i])
 		grpcWorkTimes.Tu = append(grpcWorkTimes.Tu, &grpcTimeFrame)
 	}
-	for _, timeFrame := range workTimes.We {
-		grpcTimeFrame := timeFrameModelToGRPC(&timeFrame)
+	for i := range workTimes.We {
+		grpcTimeFrame := timeFrameModelToGRPC(&workTimes.We[i])
 		grpcWorkTimes.We = append(grpcWorkTimes.We, &grpcTimeFrame)
 	}
-	for _, timeFrame := range workTimes.Th {
-		grpcTimeFrame := timeFrameModelToGRPC(&timeFrame)
+	for i := range workTimes.Th {
+		grpcTimeFrame := timeFrameModelToGRPC(&workTimes.Th[i])
 		grpcWorkTimes.Th = append(grpcWorkTimes.Th, &grpcTimeFrame)
 	}
-	for _, timeFrame := range workTimes.Fr {
-		grpcTimeFrame := timeFrameModelToGRPC(&timeFrame)
+	for i := range workTimes.Fr {
+		grpcTimeFrame := timeFrameModelToGRPC(&workTimes.Fr[i])
 		grpcWorkTimes.Fr = append(grpcWorkTimes.Fr, &grpcTimeFrame)
 	}
-	for _, timeFrame := range workTimes.Sa {
-		grpcTimeFrame := timeFrameModelToGRPC(&timeFrame)
+	for i := range workTimes.Sa {
+		grpcTimeFrame := timeFrameModelToGRPC(&workTimes.Sa[i])
 		grpcWorkTimes.Sa = append(grpcWorkTimes.Sa, &grpcTimeFrame)
 	}
-	for _, timeFrame := range workTimes.Su {
-		grpcTimeFrame := timeFrameModelToGRPC(&timeFrame)
+	for i := range workTimes.Su {
+		grpcTimeFrame := timeFrameModelToGRPC(&workTimes.Su[i])
 		grpcWorkTimes.Su = append(grpcWorkTimes.Su, &grpcTimeFrame)
 	}
 	return &grpcWorkTimes
