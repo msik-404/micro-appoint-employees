@@ -75,6 +75,7 @@ func (employeeUpdate *EmployeeUpdate) UpdateOne(
 func FindOneEmployee(
 	ctx context.Context,
 	db *mongo.Database,
+	companyID primitive.ObjectID,
 	employeeID primitive.ObjectID,
 ) *mongo.SingleResult {
 	opts := options.FindOne()
@@ -83,7 +84,10 @@ func FindOneEmployee(
 	})
 
 	coll := db.Collection(database.CollName)
-	filter := bson.M{"_id": employeeID}
+	filter := bson.M{
+		"_id":        employeeID,
+		"company_id": companyID,
+	}
 	return coll.FindOne(ctx, filter, opts)
 }
 

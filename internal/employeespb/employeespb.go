@@ -171,11 +171,15 @@ func (s *Server) FindOneEmployee(
 	if err != nil {
 		return nil, err
 	}
+	companyID, err := hexToObjectID(request.GetCompanyId())
+	if err != nil {
+		return nil, err
+	}
 	db := s.Client.Database(database.DBName)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	var employeeModel models.Employee
-	err = models.FindOneEmployee(ctx, db, employeeID).Decode(&employeeModel)
+	err = models.FindOneEmployee(ctx, db, companyID, employeeID).Decode(&employeeModel)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, status.Error(codes.NotFound, err.Error())

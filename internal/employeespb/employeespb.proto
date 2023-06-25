@@ -26,7 +26,8 @@ message EmployeesReply {
 }
 
 message EmployeeRequest {
-    optional string id = 1;
+    optional string company_id = 1;
+    optional string id = 2;
 }
 
 message EmployeesRequest {
