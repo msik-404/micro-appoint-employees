@@ -2,7 +2,6 @@ package employeespb
 
 import (
 	"context"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -63,8 +62,6 @@ func (s *Server) AddEmployee(
 		Competence: competence,
 	}
 	db := s.Client.Database(database.DBName)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
 	_, err = newEmployee.InsertOne(ctx, db)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -120,8 +117,6 @@ func (s *Server) UpdateEmployee(
 		Competence: competence,
 	}
 	db := s.Client.Database(database.DBName)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
 	result, err := employeeUpdate.UpdateOne(ctx, db, companyID, employeeID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -148,8 +143,6 @@ func (s *Server) DeleteEmployee(
 		return nil, err
 	}
 	db := s.Client.Database(database.DBName)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
 	result, err := models.DeleteOneEmployee(ctx, db, companyID, employeeID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -176,8 +169,6 @@ func (s *Server) FindOneEmployee(
 		return nil, err
 	}
 	db := s.Client.Database(database.DBName)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
 	var employeeModel models.Employee
 	err = models.FindOneEmployee(ctx, db, companyID, employeeID).Decode(&employeeModel)
 	if err != nil {
@@ -223,8 +214,6 @@ func (s *Server) FindManyEmployees(
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
 	defer cursor.Close(ctx)
 	reply = &EmployeesReply{}
 	for cursor.Next(ctx) {
@@ -310,8 +299,6 @@ func (s *Server) FindManyTimeSlots(
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	var reply TimeSlotsReply 
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
 	defer cursor.Close(ctx)
 	// for each employee
 	for cursor.Next(ctx) {
