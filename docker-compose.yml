@@ -14,8 +14,8 @@ services:
       - micro-appoint-net
     ports:
       - 50052:50051
-    volumes:
-      - .:/app
+        # volumes:
+        #   - .:/app
 
   mongodb:
     image: mongo
